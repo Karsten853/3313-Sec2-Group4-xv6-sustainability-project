@@ -8,6 +8,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct roomstat;   // defined in kernel/roomstat.h
 
 // bio.c
 void            binit(void);
@@ -180,6 +181,16 @@ void            plic_complete(int);
 void            virtio_disk_init(void);
 void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
+
+// lighting.c
+void            lighting_init(void);
+int             room_status(int, struct roomstat*);
+int             set_room_occupied(int);
+int             set_room_empty(int);
+void            update_usage(void);
+uint            get_room_usage(int);
+uint            get_total_usage(void);
+int             auto_shutoff(int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

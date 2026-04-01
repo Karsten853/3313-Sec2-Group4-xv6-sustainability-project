@@ -20,3 +20,11 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+
+// Smart Lighting Energy Management syscalls
+#define SYS_lighting_init  22
+#define SYS_room_status    23
+#define SYS_set_occupied   24
+#define SYS_set_empty      25
+#define SYS_get_usage      26
+#define SYS_auto_shutoff   27

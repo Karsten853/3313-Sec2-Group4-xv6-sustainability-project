@@ -168,6 +168,7 @@ clockintr()
     acquire(&tickslock);
     ticks++;
     wakeup(&ticks);
+    update_usage();    // accumulate energy usage for lit rooms (Feature 3)
     release(&tickslock);
   }
 

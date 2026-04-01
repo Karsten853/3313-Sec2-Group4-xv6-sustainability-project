@@ -29,6 +29,8 @@ OBJS = \
   $K/kernelvec.o \
   $K/plic.o \
   $K/roomenv.o \
+  $K/lighting.o \
+  $K/syslighting.o \
   $K/virtio_disk.o
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
@@ -146,6 +148,11 @@ UPROGS=\
 	$U/_logstress\
 	$U/_forphan\
 	$U/_dorphan\
+	$U/_lightctl\
+	$U/_roomctl\
+	$U/_energymon\
+	$U/_autoshutoff\
+	$U/_lighttest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
