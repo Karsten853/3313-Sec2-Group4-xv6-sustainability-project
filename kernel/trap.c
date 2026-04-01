@@ -168,8 +168,8 @@ clockintr()
     acquire(&tickslock);
     ticks++;
     wakeup(&ticks);
-    update_usage();    // accumulate energy usage for lit rooms (Feature 3)
     release(&tickslock);
+    update_usage();    // accumulate energy usage for lit rooms (Feature 3)
   }
 
   // ask for the next timer interrupt. this also clears
