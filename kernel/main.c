@@ -3,7 +3,7 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
-#include "roomenv.h"
+#include "lighting.h"
 
 volatile static int started = 0;
 
@@ -28,8 +28,7 @@ main()
     binit();         // buffer cache
     iinit();         // inode table
     fileinit();      // file table
-    roomenv_init();  // initialize smart room environment
-    roomenv_print_status(); // Print room status
+    lighting_init(); // initialize smart lighting environment (5 rooms)
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
     __sync_synchronize();

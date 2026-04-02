@@ -1,6 +1,7 @@
 #define SBRK_ERROR ((char *)-1)
 
 struct stat;
+struct roomstat;
 
 // system calls
 int fork(void);
@@ -24,6 +25,14 @@ int getpid(void);
 char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
+
+// Smart Lighting Energy Management syscalls (Feature 1-4)
+int   lighting_init(void);
+int   room_status(int, struct roomstat*);
+int   set_occupied(int);
+int   set_empty(int);
+uint  get_usage(int);
+int   auto_shutoff(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

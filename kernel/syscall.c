@@ -101,6 +101,12 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_lighting_init(void);
+extern uint64 sys_room_status(void);
+extern uint64 sys_set_occupied(void);
+extern uint64 sys_set_empty(void);
+extern uint64 sys_get_usage(void);
+extern uint64 sys_auto_shutoff(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -125,7 +131,13 @@ static uint64 (*syscalls[])(void) = {
 [SYS_unlink]  sys_unlink,
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
-[SYS_close]   sys_close,
+[SYS_close]         sys_close,
+[SYS_lighting_init] sys_lighting_init,
+[SYS_room_status]   sys_room_status,
+[SYS_set_occupied]  sys_set_occupied,
+[SYS_set_empty]     sys_set_empty,
+[SYS_get_usage]     sys_get_usage,
+[SYS_auto_shutoff]  sys_auto_shutoff,
 };
 
 void
