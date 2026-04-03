@@ -57,13 +57,12 @@ main(int argc, char *argv[])
         uint total = 0;
 
         printf("\n=== Energy Usage Report ===\n");
-        printf("  %-4s  %-14s  %-13s  %s\n",
-               "ID", "Room", "Usage (ticks)", "Light");
+        printf("  ID  Room            Usage (ticks)  Light\n");
         printf("  ------------------------------------------\n");
 
         for (int i = 0; i < NUM_ROOMS; i++) {
             if (room_status(i, &rs) == 0) {
-                printf("  %-4d  %-14s  %-13u  %s\n",
+                printf("  %d   %s: %u ticks (%s)\n",
                        i, rs.name, rs.usage_ticks,
                        rs.light_on == LIGHT_ON ? "ON" : "OFF");
                 total += rs.usage_ticks;

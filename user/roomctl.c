@@ -40,15 +40,14 @@ myatoi(const char *s)
 static void
 print_header(void)
 {
-    printf("  %-4s  %-14s  %-5s  %-10s  %s\n",
-           "ID", "Room", "Light", "Occupancy", "Usage (ticks)");
+    printf("  ID  Room            Light  Occupancy   Usage (ticks)\n");
     printf("  -------------------------------------------------------\n");
 }
 
 static void
 print_room(int id, struct roomstat *rs)
 {
-    printf("  %-4d  %-14s  %-5s  %-10s  %d\n",
+    printf("  %d   %s: %s, %s, %u ticks\n",
            id,
            rs->name,
            rs->light_on == LIGHT_ON      ? "ON"  : "OFF",
