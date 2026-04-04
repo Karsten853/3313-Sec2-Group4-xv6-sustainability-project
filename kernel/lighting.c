@@ -203,17 +203,21 @@ get_total_usage(void)
 // Feature 4: Energy-Saving Auto-Shutoff  (Jade)
 // ============================================================
 
-// auto_shutoff — Turn off lights in rooms idle longer than timeout_ticks.
+// auto_shutoff_impl — Core policy (used by lighting_tick and the auto_shutoff syscall).
 //
-// A room qualifies for auto-shutoff when ALL of the following are true:
-//   (a) occupied == ROOM_EMPTY
-//   (b) light_on == LIGHT_ON   (light left on after occupant left)
-//   (c) (ticks - last_active) >= timeout_ticks
+// Rules:
+//   1) Whole house: if every room is EMPTY, turn OFF every light still ON (immediate
+//      whole-house shutdown; catches stray state).
+//   2) Otherwise: any room whose light is ON and has been idle for >= timeout_ticks
+//      (ticks - last_active) gets its light turned OFF.  last_active is updated on
+//      set_room_occupied / set_room_empty, so this models ~10 s of no occupancy change
+//      while the light was on (forgotten lights or extended idle while still marked
+//      occupied).  Call set_occupied again to turn the light back on and reset the timer.
 //
-// Pass timeout_ticks == 0 to use the OCCUPANCY_TIMEOUT default.
-// Returns the number of rooms whose lights were turned off.
-int
-auto_shutoff(int timeout_ticks)
+// Pass timeout_ticks == 0 to use OCCUPANCY_TIMEOUT (~10 s).
+// If verbose, prints one line when at least one light was turned off.
+static int
+auto_shutoff_impl(int timeout_ticks, int verbose)
 {
     if (!lighting_initialized) lighting_init();
     if (timeout_ticks <= 0)
@@ -223,15 +227,48 @@ auto_shutoff(int timeout_ticks)
     uint now   = ticks;
 
     acquire(&lighting_lock);
+
+    int all_empty = 1;
     for (int i = 0; i < NUM_ROOMS; i++) {
-        if (rooms[i].occupied == ROOM_EMPTY &&
-            rooms[i].light_on == LIGHT_ON   &&
-            (now - rooms[i].last_active) >= (uint)timeout_ticks) {
-            rooms[i].light_on = LIGHT_OFF;
-            count++;
+        if (rooms[i].occupied != ROOM_EMPTY)
+            all_empty = 0;
+    }
+
+    if (all_empty) {
+        for (int i = 0; i < NUM_ROOMS; i++) {
+            if (rooms[i].light_on == LIGHT_ON) {
+                rooms[i].light_on = LIGHT_OFF;
+                count++;
+            }
+        }
+    } else {
+        for (int i = 0; i < NUM_ROOMS; i++) {
+            if (rooms[i].light_on == LIGHT_ON &&
+                (now - rooms[i].last_active) >= (uint)timeout_ticks) {
+                rooms[i].light_on = LIGHT_OFF;
+                count++;
+            }
         }
     }
+
     release(&lighting_lock);
 
+    if (verbose && count > 0)
+        printf("lighting: auto-shutoff saved energy - turned off %d light(s)\n", count);
+
     return count;
+}
+
+// lighting_tick — Run default auto-shutoff once; call from clockintr() on tick 0.
+void
+lighting_tick(void)
+{
+    auto_shutoff_impl(0, 1);
+}
+
+// auto_shutoff — Same policy without console messages (for user programs / tests).
+int
+auto_shutoff(int timeout_ticks)
+{
+    return auto_shutoff_impl(timeout_ticks, 0);
 }

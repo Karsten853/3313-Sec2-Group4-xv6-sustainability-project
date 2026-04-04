@@ -154,11 +154,13 @@ test_auto_shutoff(void)
     printf("\n--- Feature 4: Energy-Saving Auto-Shutoff (Jade) ---\n");
     struct roomstat rs;
 
-    // A room that IS occupied should NOT be shut off regardless of timeout
+    // A room that IS occupied should NOT be shut off if timeout has not elapsed
+    // (last_active was just reset; use a huge timeout so idle time is never enough)
     set_occupied(1);    // Kitchen
-    int n = auto_shutoff(1);   // very short timeout
+    int n = auto_shutoff(0x7fffffff);
     room_status(1, &rs);
-    check("Occupied room NOT shut off by auto_shutoff", rs.light_on == LIGHT_ON);
+    check("Occupied room NOT shut off when timeout not reached",
+          rs.light_on == LIGHT_ON && n == 0);
     set_empty(1);   // clean up
 
     // An empty room with its light off should not be counted

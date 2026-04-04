@@ -42,6 +42,7 @@ uint get_room_usage(int roomid);
 uint get_total_usage(void);
 
 // Feature 4 – Energy-saving auto-shutoff (Jade)
+void lighting_tick(void);      // call once per tick from clockintr() after update_usage()
 int  auto_shutoff(int timeout_ticks);
 
 #endif // LIGHTING_H

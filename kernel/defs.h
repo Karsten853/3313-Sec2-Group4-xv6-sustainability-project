@@ -188,6 +188,7 @@ int             room_status(int, struct roomstat*);
 int             set_room_occupied(int);
 int             set_room_empty(int);
 void            update_usage(void);
+void            lighting_tick(void);
 uint            get_room_usage(int);
 uint            get_total_usage(void);
 int             auto_shutoff(int);

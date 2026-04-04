@@ -6,7 +6,7 @@
 // its light on for longer than the timeout gets its light turned off.
 //
 // Usage:
-//   autoshutoff              run with default timeout (500 ticks)
+//   autoshutoff              run with default timeout (OCCUPANCY_TIMEOUT, ~10 s)
 //   autoshutoff <ticks>      run with a custom timeout in ticks
 
 #include "kernel/types.h"

@@ -170,6 +170,7 @@ clockintr()
     wakeup(&ticks);
     release(&tickslock);
     update_usage();    // accumulate energy usage for lit rooms (Feature 3)
+    lighting_tick();   // auto-shutoff policy on timer (Feature 4)
   }
 
   // ask for the next timer interrupt. this also clears
