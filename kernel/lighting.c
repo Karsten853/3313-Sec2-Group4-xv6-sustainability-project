@@ -64,8 +64,8 @@ lighting_init(void)
         rooms[i].name[j]    = '\0';
         rooms[i].light_on   = LIGHT_OFF;
         rooms[i].occupied   = ROOM_EMPTY;
-        rooms[i].usage_ticks = 0;
-        rooms[i].last_active = 0;
+        rooms[i].usage_ticks    = 0;
+        rooms[i].light_on_since = 0;
     }
 
     lighting_initialized = 1;
@@ -101,8 +101,7 @@ room_status(int roomid, struct roomstat *out)
 
 // set_room_occupied — Mark a room as occupied and turn its light ON.
 //
-// Called when a person enters a room.  The light turns on immediately
-// and last_active is updated so the auto-shutoff timer resets.
+// Called when a person enters a room.  light_on_since starts max-on-time tracking.
 //
 // roomid : 0 .. NUM_ROOMS-1
 // Returns 0 on success, -1 on invalid roomid.
@@ -114,9 +113,9 @@ set_room_occupied(int roomid)
         return -1;
 
     acquire(&lighting_lock);
-    rooms[roomid].occupied    = ROOM_OCCUPIED;
-    rooms[roomid].light_on    = LIGHT_ON;   // light turns on immediately
-    rooms[roomid].last_active = ticks;      // reset idle timer
+    rooms[roomid].occupied       = ROOM_OCCUPIED;
+    rooms[roomid].light_on       = LIGHT_ON;
+    rooms[roomid].light_on_since = ticks;   // Feature 4: max-on-time window starts
     release(&lighting_lock);
 
     return 0;
@@ -125,8 +124,7 @@ set_room_occupied(int roomid)
 // set_room_empty — Mark a room as empty and turn its light OFF.
 //
 // Called when the last person leaves a room.  The light turns off
-// immediately, saving energy.  last_active is recorded so auto-shutoff
-// can detect rooms left on by mistake.
+// immediately, saving energy.
 //
 // roomid : 0 .. NUM_ROOMS-1
 // Returns 0 on success, -1 on invalid roomid.
@@ -138,9 +136,9 @@ set_room_empty(int roomid)
         return -1;
 
     acquire(&lighting_lock);
-    rooms[roomid].occupied    = ROOM_EMPTY;
-    rooms[roomid].light_on    = LIGHT_OFF;  // light turns off immediately
-    rooms[roomid].last_active = ticks;      // note when room became empty
+    rooms[roomid].occupied       = ROOM_EMPTY;
+    rooms[roomid].light_on       = LIGHT_OFF;
+    rooms[roomid].light_on_since = 0;
     release(&lighting_lock);
 
     return 0;
@@ -206,22 +204,17 @@ get_total_usage(void)
 // auto_shutoff_impl — Core policy (used by lighting_tick and the auto_shutoff syscall).
 //
 // Rules:
-//   1) Whole house: if every room is EMPTY, turn OFF every light still ON (immediate
-//      whole-house shutdown; catches stray state).
-//   2) Otherwise: any room whose light is ON and has been idle for >= timeout_ticks
-//      (ticks - last_active) gets its light turned OFF.  last_active is updated on
-//      set_room_occupied / set_room_empty, so this models ~10 s of no occupancy change
-//      while the light was on (forgotten lights or extended idle while still marked
-//      occupied).  Call set_occupied again to turn the light back on and reset the timer.
+//   1) Max-on-time: light ON continuously for >= MAX_LIGHT_ON_TICKS (light_on_since)
+//      → turn OFF (even if OCCUPIED).  Resets when set_room_occupied runs or light was off.
+//   2) Whole house empty: turn OFF every light still ON (immediate).
 //
-// Pass timeout_ticks == 0 to use OCCUPANCY_TIMEOUT (~10 s).
-// If verbose, prints one line when at least one light was turned off.
+// timeout_ticks is ignored (kept for syscall ABI compatibility).
 static int
 auto_shutoff_impl(int timeout_ticks, int verbose)
 {
+    (void)timeout_ticks;
+
     if (!lighting_initialized) lighting_init();
-    if (timeout_ticks <= 0)
-        timeout_ticks = OCCUPANCY_TIMEOUT;
 
     int  count = 0;
     uint now   = ticks;
@@ -234,18 +227,22 @@ auto_shutoff_impl(int timeout_ticks, int verbose)
             all_empty = 0;
     }
 
+    // Rule 1 — max continuous ON time
+    for (int i = 0; i < NUM_ROOMS; i++) {
+        if (rooms[i].light_on == LIGHT_ON &&
+            rooms[i].light_on_since > 0 &&
+            (now - rooms[i].light_on_since) >= (uint)MAX_LIGHT_ON_TICKS) {
+            rooms[i].light_on       = LIGHT_OFF;
+            rooms[i].light_on_since = 0;
+            count++;
+        }
+    }
+
     if (all_empty) {
         for (int i = 0; i < NUM_ROOMS; i++) {
             if (rooms[i].light_on == LIGHT_ON) {
-                rooms[i].light_on = LIGHT_OFF;
-                count++;
-            }
-        }
-    } else {
-        for (int i = 0; i < NUM_ROOMS; i++) {
-            if (rooms[i].light_on == LIGHT_ON &&
-                (now - rooms[i].last_active) >= (uint)timeout_ticks) {
-                rooms[i].light_on = LIGHT_OFF;
+                rooms[i].light_on       = LIGHT_OFF;
+                rooms[i].light_on_since = 0;
                 count++;
             }
         }

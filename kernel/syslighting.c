@@ -83,7 +83,7 @@ sys_get_usage(void)
 }
 
 // sys_auto_shutoff — Run the auto-shutoff policy (syscall 27).
-// Userspace signature: int auto_shutoff(int timeout_ticks)
+// Userspace signature: int auto_shutoff(int timeout_ticks)  (argument ignored)
 //
 // Returns the number of lights turned off.
 uint64

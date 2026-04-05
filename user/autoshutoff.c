@@ -2,12 +2,12 @@
 // autoshutoff — Energy-Saving Auto-Shutoff Policy
 //   Feature 4 — Jade
 //
-// Applies the auto-shutoff rule: any room that has been unoccupied with
-// its light on for longer than the timeout gets its light turned off.
+// Runs max-on-time auto-shutoff (MAX_LIGHT_ON_TICKS) and whole-house-empty cleanup.
+// Optional numeric argument is ignored (syscall ABI); threshold is fixed in the kernel.
 //
 // Usage:
-//   autoshutoff              run with default timeout (OCCUPANCY_TIMEOUT, ~10 s)
-//   autoshutoff <ticks>      run with a custom timeout in ticks
+//   autoshutoff
+//   autoshutoff <ignored>
 
 #include "kernel/types.h"
 #include "kernel/roomstat.h"
@@ -27,10 +27,10 @@ main(int argc, char *argv[])
 {
     lighting_init();
 
-    int timeout = (argc >= 2) ? myatoi(argv[1]) : 0; // 0 → use kernel default
+    int timeout = (argc >= 2) ? myatoi(argv[1]) : 0; // ignored by kernel
 
-    printf("autoshutoff: checking rooms (timeout = %d ticks)...\n",
-           timeout > 0 ? timeout : OCCUPANCY_TIMEOUT);
+    printf("autoshutoff: applying max-on-time policy (MAX_LIGHT_ON_TICKS=%d)...\n",
+           MAX_LIGHT_ON_TICKS);
 
     int count = auto_shutoff(timeout);
 

@@ -11,14 +11,13 @@
 #include "roomstat.h"   // shared constants + struct roomstat
 #include "spinlock.h"
 
-// Internal room structure — extends the public roomstat with a kernel-only
-// field (last_active) used by the auto-shutoff timer comparison.
+// Internal room structure — extends the public roomstat with kernel-only fields.
 struct room {
     char name[ROOM_NAME_MAX]; // room display name
     int  light_on;            // LIGHT_ON or LIGHT_OFF
     int  occupied;            // ROOM_OCCUPIED or ROOM_EMPTY
     uint usage_ticks;         // energy-usage counter (ticks with light on)
-    uint last_active;         // tick timestamp of last occupancy change
+    uint light_on_since;      // tick when light last went ON; 0 if light is OFF
 };
 
 // ---- Module state (defined in lighting.c) ----

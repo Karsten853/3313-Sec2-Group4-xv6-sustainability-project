@@ -19,9 +19,9 @@
 #define ROOM_EMPTY     0
 #define ROOM_OCCUPIED  1
 
-// Ticks of idle (no occupancy change) before auto-shutoff turns a light off.
-// xv6's timer is ~10 ticks per second (see clockintr() in trap.c), so 100 ≈ 10 s.
-#define OCCUPANCY_TIMEOUT  100
+// Max continuous time a single light may stay ON (even if occupied).
+// Resets when the light turns OFF or when set_room_occupied starts a new ON period.
+#define MAX_LIGHT_ON_TICKS  100
 
 // Room status structure — copied from kernel to userspace via copyout().
 // Only contains the fields that user programs need to read.
