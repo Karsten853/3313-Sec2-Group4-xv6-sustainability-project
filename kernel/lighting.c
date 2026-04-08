@@ -212,12 +212,11 @@ get_total_usage(void)
 static int
 auto_shutoff_impl(int timeout_ticks, int verbose)
 {
-    (void)timeout_ticks;
-
     if (!lighting_initialized) lighting_init();
 
     int  count = 0;
     uint now   = ticks;
+    uint limit = (timeout_ticks > 0) ? (uint)timeout_ticks : (uint)MAX_LIGHT_ON_TICKS;
 
     acquire(&lighting_lock);
 
@@ -231,7 +230,7 @@ auto_shutoff_impl(int timeout_ticks, int verbose)
     for (int i = 0; i < NUM_ROOMS; i++) {
         if (rooms[i].light_on == LIGHT_ON &&
             rooms[i].light_on_since > 0 &&
-            (now - rooms[i].light_on_since) >= (uint)MAX_LIGHT_ON_TICKS) {
+            (now - rooms[i].light_on_since) >= limit) {
             rooms[i].light_on       = LIGHT_OFF;
             rooms[i].light_on_since = 0;
             count++;
@@ -260,7 +259,7 @@ auto_shutoff_impl(int timeout_ticks, int verbose)
 void
 lighting_tick(void)
 {
-    auto_shutoff_impl(0, 1);
+    auto_shutoff_impl(300, 1); // 30 seconds (300 ticks @ 10Hz)
 }
 
 // auto_shutoff — Same policy without console messages (for user programs / tests).
