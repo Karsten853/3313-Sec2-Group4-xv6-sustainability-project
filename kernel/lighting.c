@@ -39,10 +39,9 @@ struct spinlock lighting_lock;
 void
 lighting_init(void)
 {
-    if (lighting_initialized)
-        return;
+    if (!lighting_initialized)
+        initlock(&lighting_lock, "lighting");
 
-    initlock(&lighting_lock, "lighting");
     acquire(&lighting_lock);
 
     // Human-readable names for the five simulated rooms
