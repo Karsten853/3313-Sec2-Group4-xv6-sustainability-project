@@ -51,8 +51,6 @@ print_room(int id, struct roomstat *rs)
 int
 main(int argc, char *argv[])
 {
-    lighting_init();
-
     if (argc < 2 || streq(argv[1], "status")) {
         int single = (argc >= 3);
         struct roomstat rs;
@@ -76,6 +74,7 @@ main(int argc, char *argv[])
         printf("  =====================================================\n\n");
 
     } else if (streq(argv[1], "init")) {
+        lighting_init();
         printf("lightctl: lighting system initialized (%d rooms).\n", NUM_ROOMS);
     } else {
         printf("lightctl: unknown command '%s'\n", argv[1]);

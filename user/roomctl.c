@@ -110,8 +110,6 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-    lighting_init();   // safe to call even if already initialized at boot
-
     if (argc < 2 || streq(argv[1], "list")) {
         cmd_list();
     } else if (streq(argv[1], "occupied")) {

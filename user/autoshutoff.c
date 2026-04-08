@@ -25,8 +25,6 @@ myatoi(const char *s)
 int
 main(int argc, char *argv[])
 {
-    lighting_init();
-
     int timeout = (argc >= 2) ? myatoi(argv[1]) : 0; // ignored by kernel
 
     printf("autoshutoff: applying max-on-time policy (MAX_LIGHT_ON_TICKS=%d)...\n",

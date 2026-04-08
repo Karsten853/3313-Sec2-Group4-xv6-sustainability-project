@@ -32,8 +32,6 @@ myatoi(const char *s)
 int
 main(int argc, char *argv[])
 {
-    lighting_init();
-
     if (argc >= 2 && streq(argv[1], "total")) {
         // Print only the total house usage
         uint total = (uint)get_usage(-1);
